@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  wisevision_notification_manager:
+    build:
+      context: .
+      args:
+        USE_EMAIL_NOTIFIER: "true"
+        USE_FIREBASE_NOTIFIER: "false"
+    container_name: wisevision_notification_manager_container
+    network_mode: "host"
+    ipc: "host"
+    pid: "host"
+    stdin_open: true
+    tty: true
