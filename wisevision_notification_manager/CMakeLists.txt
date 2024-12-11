@@ -37,10 +37,6 @@ add_executable(notifications_handler
     src/main.cpp
 )
 
-add_executable(notifications_publisher 
-    src/notifications_publisher.cpp
-)
-
 ament_target_dependencies(notifications_handler 
     rclcpp 
     notification_msgs
@@ -49,10 +45,6 @@ ament_target_dependencies(notifications_handler
     PkgConfig
 )
 
-ament_target_dependencies(notifications_publisher 
-    rclcpp 
-    notification_msgs
-)
 
 target_link_libraries(notifications_handler 
     ${YAML_CPP_LIBRARIES} 
@@ -93,7 +85,6 @@ endif()
 
 install(TARGETS
     notifications_handler
-    notifications_publisher
     DESTINATION lib/${PROJECT_NAME}
 )
 
