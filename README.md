@@ -8,7 +8,7 @@ For more information, please refer to the following sections:
 
 For more information, please refer to the following sections:
 
-[Build and run(Start here)](docs/BUILD_AND_RUN.md)
+[Configure and run(Start here)](docs/CONFIGURE_AND_RUN.md)
 
 [Minimal example](docs/MINIMAL_EXAMPLE.md)
 

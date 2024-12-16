@@ -1,6 +1,6 @@
-# Build and run
+# Configure and run
 ## Local build
-Prequistances:
+Prerequisites:
 ```bash
 sudo apt install curl libyaml-cpp-dev libjsoncpp-dev libcurl4-openssl-dev -y
 ```
@@ -12,10 +12,14 @@ cd wisevision_notification_manager
 vcs import --recursive < wisevision_notification_manager.repos
 ```
 
+
 ## Local run
 Prequistances:
 
 ### Push notifications:
+
+***Firebase*** is a platform developed by Google that provides tools and services to support the development of mobile and web applications. In this application, Firebase is used to send push notifications, enabling real-time communication with users by delivering important updates, events, or messages directly to their mobile devices.
+
 In `wisevision_notification_manager_ws` copy `deviceTokens_example.json` from `wisevision_notification_manager` into `deviceTokens.json`
 ```bash
 cd ~/wisevision_notification_manager_ws
@@ -70,16 +74,16 @@ Replace example data for user data.
 #### Hints
 - To use mail as smtp server go to security settings in mail and create app password
 
+Set environment variables before running:
+```bash
+export USE_EMAIL_NOTIFIER=<true or false>
+export USE_FIREBASE_NOTIFIER=<true or false>
+```
+
 Build:
 ``` bash
 cd ~/wisevision_notification_manager_ws
 colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --packages-up-to wisevision_notification_manager
-```
-
-Before run set environment variables:
-```bash
-export USE_EMAIL_NOTIFIER=<true or false>
-export USE_FIREBASE_NOTIFIER=<true or false>
 ```
 
 Run:
@@ -91,18 +95,19 @@ ros2 run wisevision_notification_manager notifications_handler --ros-args -p use
 ## Docker build and run
 Prequistances:
 
-Clone repository:
-```bash
-mkdir -p ~/wisevision_notification_manager_ws/src && cd ~/wisevision_notification_manager_ws/src
-git clone git@github.com:wise-vision/wisevision_notification_manager.git
-```
-
 Beofore create conatiner in `docker-compose.yml`, change arguments for your needs of sending notifications via email and via firebase.
 ```docker-compose
 args:
   - USE_EMAIL_NOTIFIER: "<true or false>"
   - USE_FIREBASE_NOTIFIER: "<true or false>"
 ```
+
+Clone repository:
+```bash
+mkdir -p ~/wisevision_notification_manager_ws/src && cd ~/wisevision_notification_manager_ws/src
+git clone git@github.com:wise-vision/wisevision_notification_manager.git
+```
+
 ### Push notifications:
 In `wisevision_notification_manager_ws/src/wisevision_notification_manager` copy `deviceTokens_example.json` into `deviceTokens.json`
 ```bash
@@ -151,7 +156,7 @@ cp <download_directory>/<key_name>.json ~/wisevision_notification_manager_ws/src
 
 Copy `config_example.yaml` from `wisevision_notification_manager_ws/src/wisevision_notification_manager` into  `config_email.yaml`
 ``` bash
-cd ~/wisevision_notification_manager_ws/src/wisevision_notification_manage
+cd ~/wisevision_notification_manager_ws/src/wisevision_notification_manager
 cp config_example.yaml config_email.yaml
 ```
 Replace example data for user data.
@@ -162,3 +167,12 @@ In folder `wisevision_notification_manager` run:
 ```bash
 docker-compose up
 ```
+Results after successful compose:
+```bash
+Creating wisevision_notification_manager_container ... done
+Attaching to wisevision_notification_manager_container
+wisevision_notification_manager_container | [INFO] [1734340613.529662152] [notification_handler]: Initializing Email Notifier from config_email.yaml
+```
+
+To send notification, run [minimal example](MINIMAL_EXAMPLE.md#examples).
+
