@@ -6,8 +6,6 @@ This package is a part of tools useful for the WiseVision Dashboard, providing a
 
 For more information, please refer to the following sections:
 
-For more information, please refer to the following sections:
-
 [Configure and run(Start here)](docs/CONFIGURE_AND_RUN.md)
 
 [Minimal example](docs/MINIMAL_EXAMPLE.md)
