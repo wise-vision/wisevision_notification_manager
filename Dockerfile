@@ -1,4 +1,4 @@
-FROM wisevision/ros_with_wisevision_msgs:humble
+FROM wisevision/ros_with_wisevision_msgs_and_wisevision_core:humble
 
 WORKDIR /root/wisevision_notification_manager_ws
 
@@ -34,7 +34,7 @@ RUN apt-get update && \
 SHELL ["/bin/bash", "-c"]
 
 RUN /bin/bash -c "source /opt/ros/humble/setup.bash && \
-source /root/wisevision_msgs_ws/install/setup.bash && \
+source /root/wisevision_ws/install/setup.bash && \
 colcon build --symlink-install"
 
 ENTRYPOINT ["/bin/bash", "-c", "source install/setup.bash && ros2 run wisevision_notification_manager notifications_handler --ros-args -p use_email_notifier:=${USE_EMAIL_NOTIFIER} -p use_firebase_notifier:=${USE_FIREBASE_NOTIFIER}"]
