@@ -46,4 +46,9 @@ jobs:
       run: |
         . /opt/ros/humble/setup.sh
         colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --packages-up-to wisevision_notification_manager
+    
+    - name: Clean up workspace
+      if: always()
+      run: |
+        sudo rm -rf wisevision_lorawan_bridge_ws
 
