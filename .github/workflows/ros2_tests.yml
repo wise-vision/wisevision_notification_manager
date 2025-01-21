@@ -44,6 +44,7 @@ jobs:
 
     - name: Build test
       run: |
+        cd wisevision_notifcation_manager_ws/src
         . /opt/ros/humble/setup.sh
         colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --packages-up-to wisevision_notification_manager
     
