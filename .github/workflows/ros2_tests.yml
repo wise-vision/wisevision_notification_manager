@@ -50,5 +50,5 @@ jobs:
     - name: Clean up workspace
       if: always()
       run: |
-        sudo rm -rf wisevision_lorawan_bridge_ws
+        sudo rm -rf wisevision_notifcation_manager
 
