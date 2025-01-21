@@ -21,7 +21,7 @@ jobs:
       uses: actions/checkout@v3
       with:
         token: ${{ secrets.PAT_TOKEN }} 
-        path: wisevision_notifcation_manager/src/wisevision_notifcation_manager
+        path: wisevision_notifcation_manager_ws/src/wisevision_notifcation_manager
 
     - name: Configure Git for HTTPS authentication
       run: |
@@ -29,7 +29,7 @@ jobs:
 
     - name: Import repositories using vcs
       run: |
-        cd wisevision_notifcation_manager/src
+        cd wisevision_notifcation_manager_ws/src
         vcs import --recursive < wisevision_notifcation_manager/wisevision_notification_manager.repos
 
     - name: Install dependencies
@@ -50,5 +50,5 @@ jobs:
     - name: Clean up workspace
       if: always()
       run: |
-        sudo rm -rf wisevision_notifcation_manager
+        sudo rm -rf wisevision_notifcation_manager_ws
 
