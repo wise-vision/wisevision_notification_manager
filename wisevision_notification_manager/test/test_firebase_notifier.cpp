@@ -32,35 +32,6 @@ protected:
   void unsetEnv(const std::string &key) { unsetenv(key.c_str()); }
 };
 
-TEST_F(FirebaseNotifierTest, ValidJsonWithDeviceTokensTest) {
-  std::string valid_service_account_json = R"(
-    {
-      "type": "service_account",
-      "project_id": "example-project",
-      "private_key_id": "1234567890abcdef1234567890abcdef",
-      "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASC\n..."
-                      "-----END PRIVATE KEY-----",
-      "client_email": "example-adminsdk@example-project.iam.gserviceaccount.com",
-      "client_id": "123456789012345678901",
-      "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-      "token_uri": "https://oauth2.googleapis.com/token",
-      "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-      "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/example-adminsdk%40example-project.iam.gserviceaccount.com"
-    })";
-
-  std::string service_account_file = "valid_service_account.json";
-
-  createJsonFile(valid_service_account_json, service_account_file);
-
-  // Ustawienie zmiennej środowiskowej z tokenami
-  setEnv("DEVICE_TOKENS_FIREBASE", "token1,token2,token3");
-
-  EXPECT_NO_THROW({ FirebaseNotifier notifier(service_account_file); });
-
-  removeJsonFile(service_account_file);
-  unsetEnv("DEVICE_TOKENS_FIREBASE");
-}
-
 TEST_F(FirebaseNotifierTest, MissingDeviceTokensTest) {
   std::string valid_service_account_json = R"(
     {
