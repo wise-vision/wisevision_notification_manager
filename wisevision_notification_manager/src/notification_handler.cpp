@@ -15,28 +15,48 @@ NotificationHandler::NotificationHandler(const rclcpp::NodeOptions &options)
     : Node("notification_handler", options) {
   this->declare_parameter<bool>("use_email_notifier", true);
   this->declare_parameter<bool>("use_firebase_notifier", false);
+  this->declare_parameter<std::string>("service_account_path",
+                                       "serviceAccount.json");
+  this->declare_parameter<std::string>("smtp_server",
+                                       "smtp://smtp.gmail.com:587");
 
   bool use_email_notifier;
   bool use_firebase_notifier;
+  std::string service_account_path;
+  std::string smtp_server;
 
-  this->get_parameter("use_email_notifier", use_email_notifier);
-  this->get_parameter("use_firebase_notifier", use_firebase_notifier);
+  use_email_notifier = this->get_parameter("use_email_notifier").as_bool();
+  use_firebase_notifier =
+      this->get_parameter("use_firebase_notifier").as_bool();
+  service_account_path =
+      this->get_parameter("service_account_path").as_string();
+  smtp_server = this->get_parameter("smtp_server").as_string();
 
   if (use_email_notifier) {
-    RCLCPP_INFO(this->get_logger(),
-                "Initializing Email Notifier from config_email.yaml");
-    m_email_notifier = EmailNotifier::createFromConfig("config_email.yaml");
-    if (!m_email_notifier) {
-      throw std::runtime_error(
-          "Failed to initialize EmailNotifier from config file");
+    try {
+      m_email_notifier = EmailNotifier::createFromEnvAndArgs(smtp_server);
+      if (!m_email_notifier) {
+        throw std::runtime_error(
+            "Failed to initialize EmailNotifier (nullptr returned)");
+      }
+    } catch (const std::exception &e) {
+      RCLCPP_ERROR(this->get_logger(),
+                   "EmailNotifier initialization failed: %s", e.what());
+      throw;
     }
   }
 
   if (use_firebase_notifier) {
+    const char *env_tokens = std::getenv(FirebaseNotifier::ENV_DEVICE_TOKENS);
+    if (!env_tokens || std::string(env_tokens).empty()) {
+      throw std::runtime_error(
+          "Environment variable DEVICE_TOKENS is not set or empty! Firebase "
+          "Notifier cannot be initialized.");
+    }
     RCLCPP_INFO(this->get_logger(),
                 "Initializing Firebase Notifier from serviceAccount.json");
-    m_firebase_notifier = std::make_shared<FirebaseNotifier>(
-        "serviceAccount.json", "deviceTokens.json");
+    m_firebase_notifier =
+        std::make_shared<FirebaseNotifier>(service_account_path);
   }
 
   if (!use_email_notifier && !use_firebase_notifier) {
@@ -163,3 +183,6 @@ void NotificationHandler::handleEmailNotification(
     RCLCPP_ERROR(this->get_logger(), "Failed to send email notification");
   }
 }
+
+#include <rclcpp_components/register_node_macro.hpp>
+RCLCPP_COMPONENTS_REGISTER_NODE(NotificationHandler)

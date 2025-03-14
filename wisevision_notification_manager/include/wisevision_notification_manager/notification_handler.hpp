@@ -22,8 +22,7 @@ using Notification = notification_msgs::msg::Notification;
 
 class NotificationHandler : public rclcpp::Node {
 public:
-  NotificationHandler(
-      const rclcpp::NodeOptions &options = rclcpp::NodeOptions());
+  explicit NotificationHandler(const rclcpp::NodeOptions &options);
 
 private:
   void notificationCallback(const Notification::SharedPtr msg);

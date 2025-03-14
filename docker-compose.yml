@@ -7,9 +7,19 @@ services:
       args:
         USE_EMAIL_NOTIFIER: "true"
         USE_FIREBASE_NOTIFIER: "false"
+        CUSTOM_CONFIG: "false"
     container_name: wisevision_notification_manager_container
     network_mode: "host"
     ipc: "host"
     pid: "host"
     stdin_open: true
     tty: true
+    environment:
+      CUSTOM_CONFIG: ${CUSTOM_CONFIG}
+      USER_CONFIG_PATH: ${USER_CONFIG_PATH}
+      EMAIL_USERNAME_NOTIFICATION: ${EMAIL_USERNAME_NOTIFICATION}
+      EMAIL_PASSWORD_NOTIFICATION: ${EMAIL_PASSWORD_NOTIFICATION}
+      EMAIL_RECIPIENTS_NOTIFICATION: ${EMAIL_RECIPIENTS_NOTIFICATION}
+      DEVICE_TOKENS_FIREBASE: ${DEVICE_TOKENS_FIREBASE}
+    volumes:
+      - ./serviceAccount.json:/root/wisevision_notification_manager_ws/serviceAccount.json # This is the path to the service account file, change it if needed

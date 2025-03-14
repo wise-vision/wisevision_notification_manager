@@ -14,11 +14,19 @@ Before run set environment variables:
 ```bash
 export USE_EMAIL_NOTIFIER=<true or false>
 export USE_FIREBASE_NOTIFIER=<true or false>
+export EMAIL_USERNAME_NOTIFICATION="user@example.com"
+export EMAIL_PASSWORD_NOTIFICATION="supersecurepassword"
+export EMAIL_RECIPIENTS_NOTIFICATION="recipient1@example.com,recipient2@example.com"
+export DEVICE_TOKENS_FIREBASE="<your-device-token-from-app-1>, <your-device-token-from-app-2>"
 ```
 Run:
 ```bash
 source install/setup.bash
 ros2 run wisevision_notification_manager notifications_handler --ros-args -p use_email_notifier:=${USE_EMAIL_NOTIFIER} -p use_firebase_notifier:=${USE_FIREBASE_NOTIFIER}
+```
+Run with config file:
+```bash
+ros2 run wisevision_notification_manager notifications_handler --ros-args --params-file ~/wisevision_notification_manager_ws/src/wisevision_notification_manager/config/params.yaml
 ```
 ## Examples
 
@@ -26,7 +34,7 @@ To get notification from wisevision_notification_manager, it's needed to have ru
 ```bash
 cd ~/wisevision_action_executor_ws
 source install/setup.bash
-ros2 run automatic_action_execution automatic_action_service
+ros2 run wisevision_action_executor automatic_action_service
 ```
 Create action for `topic_1` that later will be triggered:
 ```bash

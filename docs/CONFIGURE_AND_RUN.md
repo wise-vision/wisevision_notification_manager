@@ -25,7 +25,10 @@ In `wisevision_notification_manager_ws` copy `deviceTokens_example.json` from `w
 cd ~/wisevision_notification_manager_ws
 cp src/wisevision_notification_manager/deviceTokens_example.json deviceTokens.json
 ```
-In this file `deviceTokens.json` in field `your-device-token-from-app` change it for [device token from app](https://github.com/wise-vision/wisevision_notificator_app?tab=readme-ov-file#minimal-example).
+Pass `your-device-token-from-app` in eviroment varaible `DEVICE_TOKENS_FIREBASE`:
+```bash
+export DEVICE_TOKENS_FIREBASE="<your-device-token-from-app-1>, <your-device-token-from-app-2>"
+```
 
 Download file from firebase console with service account password `serviceAccount.json` and copy it to `wisevision_notification_manager_ws`
 1. Go to https://firebase.google.com.
@@ -62,6 +65,10 @@ Download file from firebase console with service account password `serviceAccoun
 ``` bash
 cp <download_directory>/<key_name>.json ~/wisevision_notification_manager_ws/serviceAccount.json
 ```
+Or there is posibilty to pass the path do the `serviceAccount.json` in config.yaml file:
+```yaml
+service_account_path: "/<path_to_file>/serviceAccount.json"
+```
 
 ### Email notifcations
 
@@ -90,6 +97,12 @@ Run:
 ```bash
 source install/setup.bash
 ros2 run wisevision_notification_manager notifications_handler --ros-args -p use_email_notifier:=${USE_EMAIL_NOTIFIER} -p use_firebase_notifier:=${USE_FIREBASE_NOTIFIER}
+```
+Run as component:
+```bash
+source install/setup.bash
+ros2 component load /ComponentManager wisevision_notification_manager NotificationHandler --param use_email_notifier:=${USE_EMAIL_NOTIFIER} --param use_firebase_notifier:=${USE_FIREBASE_NOTIFIER}
+
 ```
 
 ## Docker build and run
@@ -153,15 +166,29 @@ cp <download_directory>/<key_name>.json ~/wisevision_notification_manager_ws/src
 ```
 
 ### Email notifcations
-
-Copy `config_example.yaml` from `wisevision_notification_manager_ws/src/wisevision_notification_manager` into  `config_email.yaml`
-``` bash
-cd ~/wisevision_notification_manager_ws/src/wisevision_notification_manager
-cp config_example.yaml config_email.yaml
+Setup environment variables with personal data:
+```bash
+export EMAIL_USERNAME_NOTIFICATION="user@example.com"
+export EMAIL_PASSWORD_NOTIFICATION="supersecurepassword"
+export EMAIL_RECIPIENTS_NOTIFICATION="recipient1@example.com,recipient2@example.com"
 ```
-Replace example data for user data.
+And replace smtp server of your mail box in `config.yaml` file:
+```yaml
+smtp_server: "<smtp_server_addres>"
+```
 #### Hints
 - To use mail as smtp server go to security settings in mail and create app password
+
+Setup environment variables before run docker compoes:
+```bash
+
+export EMAIL_USERNAME_NOTIFICATION="user@example.com"
+export EMAIL_PASSWORD_NOTIFICATION="supersecurepassword"
+export EMAIL_RECIPIENTS_NOTIFICATION="recipient1@example.com,recipient2@example.com"
+export DEVICE_TOKENS_FIREBASE="<your-device-token-from-app-1>, <your-device-token-from-app-2>"
+export CUSTOM_CONFIG=<true or false> #in case use custom config file
+export USER_CONFIG_PATH="path_to_custom_config_file"
+```
 
 In folder `wisevision_notification_manager` run:
 ```bash
