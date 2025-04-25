@@ -99,6 +99,12 @@ source install/setup.bash
 ros2 run wisevision_notification_manager notifications_handler --ros-args -p use_email_notifier:=${USE_EMAIL_NOTIFIER} -p use_firebase_notifier:=${USE_FIREBASE_NOTIFIER}
 ```
 Run as component:
+First start components container:
+```bash
+source install/setup.bash
+ros2 run rclcpp_components component_container
+```
+Load component:
 ```bash
 source install/setup.bash
 ros2 component load /ComponentManager wisevision_notification_manager NotificationHandler --param use_email_notifier:=${USE_EMAIL_NOTIFIER} --param use_firebase_notifier:=${USE_FIREBASE_NOTIFIER}
