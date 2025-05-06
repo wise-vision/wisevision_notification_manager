@@ -1,6 +1,0 @@
-smtp_server: "smtp://smtp.example.com:587"
-username: "example_notifications@example.com"
-password: "example_password_123"
-recipients:
-  - "recipient1@example.com"
-  - "recipient2@example.com"

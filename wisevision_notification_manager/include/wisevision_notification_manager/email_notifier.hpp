@@ -38,8 +38,13 @@ public:
   bool sendEmail(const std::string &subject, const std::string &body);
 
   static std::shared_ptr<EmailNotifier>
-  createFromConfig(const std::string &config_file);
+  createFromEnvAndArgs(const std::string &smtp_server);
   CurlPerformFunc curlPerform;
+
+  static constexpr const char *EMAIL_USERNAME = "EMAIL_USERNAME_NOTIFICATION";
+  static constexpr const char *EMAIL_PASSWORD = "EMAIL_PASSWORD_NOTIFICATION";
+  static constexpr const char *EMAIL_RECIPIENTS =
+      "EMAIL_RECIPIENTS_NOTIFICATION";
 
 private:
   std::string m_smtp_server;

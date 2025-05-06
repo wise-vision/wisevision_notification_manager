@@ -26,19 +26,18 @@
 
 class FirebaseNotifier {
 public:
-  FirebaseNotifier(const std::string &service_account_file,
-                   const std::string &device_token_file);
+  static constexpr const char *ENV_DEVICE_TOKENS = "DEVICE_TOKENS_FIREBASE";
+  FirebaseNotifier(const std::string &service_account_file);
   bool sendNotification(const std::string &title, const std::string &body,
                         const std::string &custom_key,
                         const std::string &custom_value);
 
 private:
   std::string m_service_account_file;
-  std::string m_device_tokens_file;
   Json::Value m_service_account;
   std::vector<std::string> m_device_tokens;
   void loadServiceAccount();
-  void checkDeviceTokens();
+  void loadDeviceTokensFromEnv();
   std::string getAccessToken();
 
   static size_t writeCallback(void *contents, size_t size, size_t nmemb,

@@ -26,60 +26,38 @@ EmailNotifier::EmailNotifier(const std::string &smtp_server,
 EmailNotifier::~EmailNotifier() {}
 
 std::shared_ptr<EmailNotifier>
-EmailNotifier::createFromConfig(const std::string &config_file) {
-  try {
-    YAML::Node config = YAML::LoadFile(config_file);
-
-    if (!config["smtp_server"] || !config["username"] || !config["password"] ||
-        !config["recipients"]) {
-      std::cerr << "Missing required configuration fields" << std::endl;
-      return nullptr;
-    }
-
-    if (!config["smtp_server"] || config["smtp_server"].IsNull() ||
-        config["smtp_server"].as<std::string>().empty()) {
-      std::cerr << "smtp_server is empty or null" << std::endl;
-      return nullptr;
-    }
-
-    if (!config["username"] || config["username"].IsNull() ||
-        config["username"].as<std::string>().empty()) {
-      std::cerr << "username is empty or null" << std::endl;
-      return nullptr;
-    }
-
-    if (!config["password"] || config["password"].IsNull() ||
-        config["password"].as<std::string>().empty()) {
-      std::cerr << "password is empty or null" << std::endl;
-      return nullptr;
-    }
-
-    auto recipients_node = config["recipients"];
-    if (!recipients_node || recipients_node.size() == 0) {
-      std::cerr << "Recipients list cannot be empty" << std::endl;
-      return nullptr;
-    }
-
-    std::vector<std::string> recipients;
-    for (const auto &recipient : recipients_node) {
-      std::string recipient_str = recipient.as<std::string>();
-      if (recipient_str.empty()) {
-        std::cerr << "Recipient cannot be an empty string" << std::endl;
-        return nullptr;
-      }
-      recipients.push_back(recipient_str);
-    }
-
-    std::string smtp_server = config["smtp_server"].as<std::string>();
-    std::string username = config["username"].as<std::string>();
-    std::string password = config["password"].as<std::string>();
-
-    return std::make_shared<EmailNotifier>(smtp_server, username, password,
-                                           recipients);
-  } catch (const YAML::Exception &e) {
-    std::cerr << "Failed to load config file: " << e.what() << std::endl;
-    return nullptr;
+EmailNotifier::createFromEnvAndArgs(const std::string &smtp_server) {
+  if (smtp_server.empty()) {
+    throw std::runtime_error("SMTP server must be provided via ROS arguments");
   }
+
+  const char *env_username = std::getenv(EMAIL_USERNAME);
+  const char *env_password = std::getenv(EMAIL_PASSWORD);
+  const char *env_recipients = std::getenv(EMAIL_RECIPIENTS);
+
+  if (!env_username || !env_password || !env_recipients ||
+      std::string(env_username).empty() || std::string(env_password).empty() ||
+      std::string(env_recipients).empty()) {
+    throw std::runtime_error(
+        "One or more email environment variables are missing or empty");
+  }
+
+  std::vector<std::string> recipients;
+  std::stringstream ss(env_recipients);
+  std::string recipient;
+
+  while (std::getline(ss, recipient, ',')) {
+    if (!recipient.empty()) {
+      recipients.push_back(recipient);
+    }
+  }
+
+  if (recipients.empty()) {
+    throw std::runtime_error("EMAIL_RECIPIENTS environment variable is empty");
+  }
+
+  return std::make_shared<EmailNotifier>(smtp_server, env_username,
+                                         env_password, recipients);
 }
 
 size_t readCallback(char *buffer, size_t size, size_t nmemb, void *userdata) {
