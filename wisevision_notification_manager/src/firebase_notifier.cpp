@@ -71,11 +71,6 @@ void FirebaseNotifier::loadDeviceTokensFromEnv() {
         "No device tokens found in DEVICE_TOKENS environment variable.");
   }
 
-  std::cout << "Loaded " << m_device_tokens.size()
-            << " device tokens from ENV:" << std::endl;
-  for (const auto &t : m_device_tokens) {
-    std::cout << "- " << t << std::endl;
-  }
 }
 
 std::string FirebaseNotifier::processPrivateKey(const std::string &raw_key) {
