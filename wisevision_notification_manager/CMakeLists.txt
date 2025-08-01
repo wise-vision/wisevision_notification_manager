@@ -26,27 +26,34 @@ find_package(rclcpp REQUIRED)
 find_package(notification_msgs REQUIRED)
 find_package(CURL REQUIRED)
 find_package(yaml-cpp REQUIRED)
+find_package(rclcpp_components REQUIRED)
+
+set(component_name ${PROJECT_NAME}_component)
 
 include_directories(include)
 include_directories(${CMAKE_BINARY_DIR})
 
-add_executable(notifications_handler
+add_library(${component_name} SHARED
     src/notification_handler.cpp
     src/email_notifier.cpp
     src/firebase_notifier.cpp
-    src/main.cpp
 )
 
-ament_target_dependencies(notifications_handler 
-    rclcpp 
+set(dependencies
+    rclcpp
     notification_msgs
     CURL
     yaml-cpp
     PkgConfig
+    rclcpp_components
+)
+
+ament_target_dependencies(${component_name}
+    ${dependencies}
 )
 
 
-target_link_libraries(notifications_handler 
+target_link_libraries(${component_name}
     ${YAML_CPP_LIBRARIES} 
     ${JSONCPP_LIBRARIES} 
     ${CONAN_LIBS} 
@@ -83,9 +90,24 @@ if(BUILD_TESTING)
   )
 endif()
 
-install(TARGETS
-    notifications_handler
-    DESTINATION lib/${PROJECT_NAME}
+
+rclcpp_components_register_node(
+  ${component_name}
+  PLUGIN "NotificationHandler"
+  EXECUTABLE notifications_handler
+)
+
+install(
+  TARGETS ${component_name}
+  EXPORT export_${component_name}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
+
+ament_export_targets(export_${component_name} HAS_LIBRARY_TARGET)
+ament_export_dependencies(
+  ${dependencies}
 )
 
 ament_package()

@@ -24,109 +24,67 @@ protected:
   void removeJsonFile(const std::string &file_name) {
     std::remove(file_name.c_str());
   }
+
+  void setEnv(const std::string &key, const std::string &value) {
+    setenv(key.c_str(), value.c_str(), 1);
+  }
+
+  void unsetEnv(const std::string &key) { unsetenv(key.c_str()); }
 };
-
-TEST_F(FirebaseNotifierTest, ValidJsonWithDeviceTokensTest) {
-  std::string valid_service_account_json = R"(
-    {
-      "type": "service_account",
-      "project_id": "wisewisionpush",
-      "private_key_id": "68e2c55fc76707c5e356b66397f8d2b7e5557b19",
-      "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQD3QzjJkL9gl6w0\n...",
-      "client_email": "firebase-adminsdk-m9ueq@wisewisionpush.iam.gserviceaccount.com",
-      "client_id": "111143268269893351780",
-      "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-      "token_uri": "https://oauth2.googleapis.com/token",
-      "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-      "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-m9ueq%40wisewisionpush.iam.gserviceaccount.com"
-    })";
-
-  std::string valid_device_tokens_json = R"(
-    {
-      "devices": [
-        {"token": "clgx1-RdRsuRzHQ8t176FO:APA91bHKoVjEyvl1QuvQquceAXj3vzdGx--vGN5Uu8-tOUCiZF3Z2XcLCJUIsQmPfbNxIXfoosyJbDcB_DLSmN3G99aNygw8EssHuz55aAZUehuPJ6FJkuhGwkOguOqOTJXXUjvFmHqa"}
-      ]
-    })";
-
-  std::string service_account_file = "valid_service_account.json";
-  std::string device_tokens_file = "valid_device_tokens.json";
-
-  createJsonFile(valid_service_account_json, service_account_file);
-  createJsonFile(valid_device_tokens_json, device_tokens_file);
-
-  EXPECT_NO_THROW(
-      { FirebaseNotifier notifier(service_account_file, device_tokens_file); });
-
-  removeJsonFile(service_account_file);
-  removeJsonFile(device_tokens_file);
-}
 
 TEST_F(FirebaseNotifierTest, MissingDeviceTokensTest) {
   std::string valid_service_account_json = R"(
     {
       "type": "service_account",
-      "project_id": "wisewisionpush",
-      "private_key_id": "68e2c55fc76707c5e356b66397f8d2b7e5557b19",
-      "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQD3QzjJkL9gl6w0\n...",
-      "client_email": "firebase-adminsdk-m9ueq@wisewisionpush.iam.gserviceaccount.com",
-      "client_id": "111143268269893351780",
+      "project_id": "example-project",
+      "private_key_id": "1234567890abcdef1234567890abcdef",
+      "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASC\n..."
+                      "-----END PRIVATE KEY-----",
+      "client_email": "example-adminsdk@example-project.iam.gserviceaccount.com",
+      "client_id": "123456789012345678901",
       "auth_uri": "https://accounts.google.com/o/oauth2/auth",
       "token_uri": "https://oauth2.googleapis.com/token",
       "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-      "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-m9ueq%40wisewisionpush.iam.gserviceaccount.com"
-    })";
-
-  std::string invalid_device_tokens_json = R"(
-    {
-      "devices": []
+      "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/example-adminsdk%40example-project.iam.gserviceaccount.com"
     })";
 
   std::string service_account_file = "valid_service_account.json";
-  std::string device_tokens_file = "empty_device_tokens.json";
 
   createJsonFile(valid_service_account_json, service_account_file);
-  createJsonFile(invalid_device_tokens_json, device_tokens_file);
 
-  EXPECT_THROW(
-      { FirebaseNotifier notifier(service_account_file, device_tokens_file); },
-      std::runtime_error);
+  unsetEnv("DEVICE_TOKENS_FIREBASE");
+
+  EXPECT_THROW({ FirebaseNotifier notifier(service_account_file); },
+               std::runtime_error);
 
   removeJsonFile(service_account_file);
-  removeJsonFile(device_tokens_file);
 }
 
-TEST_F(FirebaseNotifierTest, MissingDevicesFieldTest) {
+TEST_F(FirebaseNotifierTest, EmptyDeviceTokensTest) {
   std::string valid_service_account_json = R"(
     {
       "type": "service_account",
-      "project_id": "wisewisionpush",
-      "private_key_id": "68e2c55fc76707c5e356b66397f8d2b7e5557b19",
-      "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQD3QzjJkL9gl6w0\n...",
-      "client_email": "firebase-adminsdk-m9ueq@wisewisionpush.iam.gserviceaccount.com",
-      "client_id": "111143268269893351780",
+      "project_id": "example-project",
+      "private_key_id": "1234567890abcdef1234567890abcdef",
+      "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASC\n..."
+                      "-----END PRIVATE KEY-----",
+      "client_email": "example-adminsdk@example-project.iam.gserviceaccount.com",
+      "client_id": "123456789012345678901",
       "auth_uri": "https://accounts.google.com/o/oauth2/auth",
       "token_uri": "https://oauth2.googleapis.com/token",
       "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-      "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-m9ueq%40wisewisionpush.iam.gserviceaccount.com"
-    })";
-
-  std::string invalid_device_tokens_json = R"(
-    {
-      "not_devices": [
-        {"token": "clgx1-RdRsuRzHQ8t176FO:APA91bHKoVjEyvl1QuvQquceAXj3vzdGx--vGN5Uu8-tOUCiZF3Z2XcLCJUIsQmPfbNxIXfoosyJbDcB_DLSmN3G99aNygw8EssHuz55aAZUehuPJ6FJkuhGwkOguOqOTJXXUjvFmHqa"}
-      ]
+      "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/example-adminsdk%40example-project.iam.gserviceaccount.com"
     })";
 
   std::string service_account_file = "valid_service_account.json";
-  std::string device_tokens_file = "invalid_device_tokens.json";
 
   createJsonFile(valid_service_account_json, service_account_file);
-  createJsonFile(invalid_device_tokens_json, device_tokens_file);
 
-  EXPECT_THROW(
-      { FirebaseNotifier notifier(service_account_file, device_tokens_file); },
-      std::runtime_error);
+  setEnv("DEVICE_TOKENS_FIREBASE", "");
+
+  EXPECT_THROW({ FirebaseNotifier notifier(service_account_file); },
+               std::runtime_error);
 
   removeJsonFile(service_account_file);
-  removeJsonFile(device_tokens_file);
+  unsetEnv("DEVICE_TOKENS_FIREBASE");
 }

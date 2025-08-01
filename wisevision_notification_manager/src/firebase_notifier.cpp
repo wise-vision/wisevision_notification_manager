@@ -10,13 +10,12 @@
 
 // Copyright (c) 2024, WiseVision. All rights reserved.
 #include "wisevision_notification_manager/firebase_notifier.hpp"
+#include <cstdlib>
 
-FirebaseNotifier::FirebaseNotifier(const std::string &service_account_file,
-                                   const std::string &device_token_file)
-    : m_service_account_file(service_account_file),
-      m_device_tokens_file(device_token_file) {
+FirebaseNotifier::FirebaseNotifier(const std::string &service_account_file)
+    : m_service_account_file(service_account_file) {
   loadServiceAccount();
-  checkDeviceTokens();
+  loadDeviceTokensFromEnv();
 }
 
 void FirebaseNotifier::loadServiceAccount() {
@@ -53,34 +52,25 @@ void FirebaseNotifier::loadServiceAccount() {
   }
 }
 
-void FirebaseNotifier::checkDeviceTokens() {
-    try {
-        std::ifstream device_tokens_stream(m_device_tokens_file, std::ifstream::binary);
-        if (!device_tokens_stream.is_open()) {
-            throw std::runtime_error("Failed to open device tokens file: " + m_device_tokens_file);
-        }
+void FirebaseNotifier::loadDeviceTokensFromEnv() {
+  const char *env_tokens = std::getenv(ENV_DEVICE_TOKENS);
+  if (!env_tokens) {
+    throw std::runtime_error("Environment variable DEVICE_TOKENS is not set!");
+  }
 
-        Json::Value device_tokens_json;
-        device_tokens_stream >> device_tokens_json;
+  std::string tokens_str(env_tokens);
+  std::stringstream ss(tokens_str);
+  std::string token;
 
-        if (!device_tokens_json.isMember("devices") ||
-            !device_tokens_json["devices"].isArray() ||
-            device_tokens_json["devices"].empty()) {
-            throw std::runtime_error("Device tokens file is invalid or empty: " + m_device_tokens_file);
-        }
+  while (std::getline(ss, token, ',')) {
+    m_device_tokens.push_back(token);
+  }
 
-        m_device_tokens.clear();
+  if (m_device_tokens.empty()) {
+    throw std::runtime_error(
+        "No device tokens found in DEVICE_TOKENS environment variable.");
+  }
 
-        for (const auto& device : device_tokens_json["devices"]) {
-            if (!device.isMember("token") || !device["token"].isString()) {
-                throw std::runtime_error(
-                    "A device entry is missing a valid token in the device tokens file: " + m_device_tokens_file);
-            }
-            m_device_tokens.push_back(device["token"].asString());
-        }
-    } catch (const Json::Exception& e) {
-        throw std::runtime_error("Failed to parse JSON in device tokens file: " + std::string(e.what()));
-    }
 }
 
 std::string FirebaseNotifier::processPrivateKey(const std::string &raw_key) {
@@ -190,42 +180,45 @@ CURLcode FirebaseNotifier::performCurlNotificationRequest(
   return res;
 }
 
-bool FirebaseNotifier::sendNotification(const std::string& title,
-                                        const std::string& body,
-                                        const std::string& custom_key,
-                                        const std::string& custom_value) {
-    std::string access_token = getAccessToken();
-    if (access_token.empty()) {
-        std::cerr << "Failed to get access token" << std::endl;
-        return false;
+bool FirebaseNotifier::sendNotification(const std::string &title,
+                                        const std::string &body,
+                                        const std::string &custom_key,
+                                        const std::string &custom_value) {
+  std::string access_token = getAccessToken();
+  if (access_token.empty()) {
+    std::cerr << "Failed to get access token" << std::endl;
+    return false;
+  }
+
+  for (const auto &device_token : m_device_tokens) {
+    Json::Value root;
+    root["message"]["token"] = device_token;
+    root["message"]["notification"]["title"] = title;
+    root["message"]["notification"]["body"] = body;
+    root["message"]["data"][custom_key] = custom_value;
+
+    Json::StreamWriterBuilder writer;
+    std::string jsonData = Json::writeString(writer, root);
+
+    std::unique_ptr<curl_slist, CurlSlistDeleter> headers(nullptr);
+    headers.reset(
+        curl_slist_append(headers.release(), "Content-Type: application/json"));
+    headers.reset(curl_slist_append(
+        headers.release(), ("Authorization: Bearer " + access_token).c_str()));
+
+    std::string url =
+        "https://fcm.googleapis.com/v1/projects/wisewisionpush/messages:send";
+
+    std::string response_string;
+    CURLcode res = performCurlRequest(url, jsonData, headers, response_string);
+
+    if (res != CURLE_OK) {
+      std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res)
+                << std::endl;
+      return false;
+    } else {
+      std::cout << "Response from server: " << response_string << std::endl;
     }
-
-    for (const auto& device_token : m_device_tokens) {
-        Json::Value root;
-        root["message"]["token"] = device_token;
-        root["message"]["notification"]["title"] = title;
-        root["message"]["notification"]["body"] = body;
-        root["message"]["data"][custom_key] = custom_value;
-
-        Json::StreamWriterBuilder writer;
-        std::string jsonData = Json::writeString(writer, root);
-
-
-        std::unique_ptr<curl_slist, CurlSlistDeleter> headers(nullptr);
-        headers.reset(curl_slist_append(headers.release(), "Content-Type: application/json"));
-        headers.reset(curl_slist_append(headers.release(), ("Authorization: Bearer " + access_token).c_str()));
-
-        std::string url = "https://fcm.googleapis.com/v1/projects/wisewisionpush/messages:send";
-
-        std::string response_string;
-        CURLcode res = performCurlRequest(url, jsonData, headers, response_string);
-
-        if (res != CURLE_OK) {
-            std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
-            return false;
-        } else {
-            std::cout << "Response from server: " << response_string << std::endl;
-        }
-    }
-    return true;
+  }
+  return true;
 }

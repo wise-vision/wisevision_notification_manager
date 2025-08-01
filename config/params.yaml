@@ -1,0 +1,6 @@
+notification_handler:
+  ros__parameters:
+    use_email_notifier: true
+    use_firebase_notifier: false
+    smtp_server: "smtp://smtp.gmail.com:587"
+    service_account_path: "serviceAccount.json"
